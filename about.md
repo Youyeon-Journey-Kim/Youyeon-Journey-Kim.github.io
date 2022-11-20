@@ -3,6 +3,10 @@ layout: page
 title: About
 ---
 
-**Not Pure Poole** is a simple, beautiful, and powerful Jekyll theme for blogs. It is built on [Poole](https://github.com/poole/poole) and [Pure](https://purecss.io/).
+**김유연(Youyeon Kim),Junior Data engineer** 
 
-For more information about Not Pure Poole, please browse the [README](https://github.com/vszhub/not-pure-poole) file.
+**약력**
+-Ailys Frontier
+ *Data Engineer, Manager, Data Analysis team, 2021.07~2022.08*
+-Bachelor's Degree in Computer Engineering
+ *2016-2021, Incheon National University,Incheon,Republic of Korea*
