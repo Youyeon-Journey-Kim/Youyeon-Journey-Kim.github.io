@@ -1,11 +1,11 @@
 # Setup
-title: Not Pure Poole
-description: A simple, beautiful, and powerful Jekyll theme for blogs
-url: https://vszhub.github.io
-avatar: /avatar.jpeg
+title: Tech Blog of Youyeon-Kim
+description: 데이터 엔지니어 김유연의 기술블로그입니다. Data engineer Journey-Kim's Tech Blog
+url: https://Youyeon-Journey-Kim.github.io
+avatar: /profile.jpg
 paginate: 5
 permalink: pretty
-cover_image: /bg.jpeg
+cover_image: /background.jpg
 
 # Gems
 plugins:
@@ -29,14 +29,14 @@ exclude:
 
 # Optimize Jekyl SEO Tag
 twitter:
-  username: vszhub
+  username: Journey
   card: summary
 logo: logo.png
 social:
-  name: Songzi Vong
+  name: Journey Kim
   links:
     - https://twitter.com/vszhub
-    - https://github.com/vszhub
+    - https://github.com/Youyeon-Journey-Kim
 google_site_verification: xxxxx
 lang: en
 
@@ -54,6 +54,6 @@ sass:
 
 # Specify the author for blog posts
 author:
-  name: Songzi Vong
-  url: https://github.com/vszhub/
-  email: vszhub@gmail.com
+  name: Youyeon-Kim(Journey-Kim)
+  url: https://github.com/Youyeon-Journey-Kim/
+  email: flex_kim97@naver.com
