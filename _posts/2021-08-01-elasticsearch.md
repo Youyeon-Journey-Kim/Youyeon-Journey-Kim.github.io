@@ -1,4 +1,4 @@
-`---
+---
 layout: post
 title: 데이터 엔지니어가 알아야하는 Elasticsearch
 tags: [엘라스틱서치, Elasticsearch]
@@ -27,10 +27,483 @@ Elasticsearch는 검색을 위해 단독으로 사용되기도 하며, ELK(Elast
 - __Elasticsearch__
     - Logstash로부터 받은 데이터를 검색 및 집계를 하여 관심있는 정보를 흭득
 - __Kibana__
-    - Elasticsearch의 빠를 검색을 통해 데이터를 시각화 및 모니터링
+    - Elasticsearch의 빠른 검색을 통해 데이터를 시각화 및 모니터링
 ![img1](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F993B7E495C98CAA706)
 
 
 ***
 
-**Elasticsearch와 관계형 DB 비교**
+**Elasticsearch와 RDBMS 비교**
+
+흔히 사용하고 있는 RDB는 Elasticsearch에서 다음과 같이 대응 시킬 수 있다.
+
+![img2](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F998444375C98CC021F)
+
+|RDBMS|Elasticsearch|
+|:---:|:---:|
+|Database|Index|
+|Table|Type|
+|Row|Document|
+|Column|Field|
+|Index|Analyze|
+|Primary Key|_id|
+|Schema|Mapping|
+|Physical partition|Shard|
+|Logical Partition|Route|
+|Relational|Parent/Child,Nested|
+|SQL|Query DSL|
+
+
+***
+
+**Elasticsearch 아키텍쳐/용어 정리**   
+
+Elasticsearch에서 사용하는 대부분의 개념은 RDBMS에도 존재하는 개념들이다.   
+![Elasticsearch Architecture](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F99A97A355C98D42D2E)
+
+- **Cluster(클러스터)**
+    - 클러스터란 ES에서 가장 큰 시스템 단위를 말하며, 최소 하나 이상의 노들 이루어진 노드들의 집합니다.   
+    서로 다른 클러스터는 데이터의 접근, 교환을 할 수 없는 독립적인 시스템으로 유지되며, 여러대의 서버가 하나의 클러스터를 구성할 수 있고, 한 서버에 여러개의 클러스터가 존재할 수 도 있다.   
+- **Node(노드)**
+    -  Elasticsearch를 구성하는 하나의 단위 프로세스를 말한다. 그 역할에 따라 Master-eligible, Data, Ingest, Tribe 노드로 구분할 수 있다.   
+        - master-eligible node
+            - 클러스터를 제어하는 마스터로 선택할 수 있는 노드를 말한다. master node의 역할은 아래오 같다.
+                - 인덱스 생성, 삭제
+                - 클러스터 노드들의 추적, 관리
+                - 데이터 입력 시 어느 샤드에 할당할 것인지
+        - Data node
+            - 데이터와 관련된 CRUD 작업과 관련있는 노드로 CPU,메모리 등 자원을 많이 소모하므로 모니터링이 필요하며, master 노드와 분리되는 것이 좋다.
+        - Ingest node
+            - 데이터를 변환하는 등 사전 처리 파이프라인을 실행하는 역할을 합니다.
+        - Coordination only node
+            - data node와 master-eligible node의 일을 대신하는 노드로 대규모 클러스터에서 큰 이점이 있다. 로드밸런서와 비슷한 역할을 함
+
+- **Index/Shard/Replice**   
+    - Elasticsearch에서 index는 RDBMS에서 database와 대응하는 개념이다. shard와 replica는 Elasticsearch에만 존재하는 개념이 아닌, 분산 데이터베이스 시스템에도 존재하는 개념이다.  
+
+
+    - Sharding은 데이터를 분산해서 저장하는 방법을 의미한다. 즉, Elasticsearch에서 스케일 아웃을 위해 index를 여러 shard로 쪼갠 것이다. 기본적으로 1개가 존재하며, 검색 성능 향상을 위해 클러스터의 샤드 갯수를 조정하는 튜닝을 하기도 한다.
+
+
+    - Replica는 또 다른 형태의 Shard라고 할 수 있다.
+    노드를 손실했을 경우 데이터의 신뢰성을 위해 샤드들을 복제하는 것, 따라서 replica는 서로 다른 노드레 존재할 것을 권장한다. 아래 사진에서 보는 바와 같이 Replica1은 Node2에 존재하는 것을 확인 할 수 있다.
+    ![replica_Example](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F991563425C98CB341A)
+
+
+***
+
+노리는 엘라스틱서치에 플러그인으로 내장되어 있고 루씬의 analysis 모듈에 포함되어있는 한국어 형태소 분석기. 
+
+1.배경
+
+1.1 루씬(Lucene)
+
+→ 루씬은 빠른 텍스트 검색을 제공하는 아파치 오픈소스. 
+
+→ Indexing과 Searching API가 심플하게 설계되어 단지 몇개의 클래스만으로도 루씬의 검색 엔진 코어를 사용하여 검색 어플리케이션을 만들 수 있음
+
+→ 루씬은 기본적으로 텍스트 데이터를 색인하고 검색 함 , 데이터베이스에 저장된 데이터를 Inverted Index라는 자료구조를 통해 색인한다.사용자 질의어가 들어오면 인덱스가 가능한 토근을 만들어 검색한다. 색인과 검색을 진행하기 전에 Analyzer를 통해 문자열을 모두 토큰으로 쪼갬
+
+→ 루씬에서는 Analyzer를 통해 가장 작은 단위의 의미를 가진 토큰으로 구분해서 텍스트 의미를 이해하려한다. 각 토큰은 검색엔진의 핵심인 inverted index로 사용되므로 Analyzer의 품질은 매우 중료하다. Analyzer는 텍스트 처리의 첫 단추와 같다.
+
+→ 데이터를 색인할떄와 사용자 질의어를 분석할때는 서로 다른 종류의 Analyzer를 사용하고 상황에 따라 토큰의 포지션 정보를 다르게 사용할 수 있다. 예를 들어,색인할때는 높은 재현율을 위해 포지션 정보를 무시하고,쿼리 분석시에는 높은 정밀도( precision)를 위해 포지션 정보를 고려한 AND 검색을 실시한다.
+
+→루씬의 Analyzer는 연산 순서가 있는 3개의 컴포넌트인 Charater fiter,Tokenizer,Token Filter로 구성된다.
+
+- Charater Filter는 chararter 단위로 전처리를
+- Token Filter는 token 단위로 후처리를 실시
+- Tokenizer에서는 형태소 분석과 함께 품사 태깅을 실시
+
+→ 루씬은 다양한 종류의 Filter와 Tokenizer를 제공하며 그 중 노리는 한국어를 위한 Analyzer이다
+
+1.2 엘라스틱서치(Elasticsearch)
+
+→ 엘라스틱서치는 루씬을 부모로 두고 개발됨
+
+→ 분산( distributed)형으로 확장성(scalability)이 높아 대용량 데이터에도 빠른 검색 속도를 유지할수있다는 장점이 있음
+
+→ 표준 RESTful API를 사용하여 특정 프로그래밍 언어에 종속되지 않고,비정형 데이터를 포함한 모든 유형의 데이터를 쉽게 다룰 수 있어 개발이 편하다. 
+
+→ Indexing과 Searching은 물론 클러스터 환경 등을 쉽게 조작할 수 있다.
+
+→ 엘라스틱서치와 함께 키바나 등이 포함된 Elastic Stack을 통해 검색뿐만 아니라 분석과 시각화를 제공한다
+
+1.3 형태소 분석기
+
+→ 전통적인 형태소 분석기는 보통 rule-based 방법론으로 설계된다. 딱딱한 규칙은 유연한 언어를 이해 하기에는 많은 예외를 발생시키고 규칙들이 서로 충동할 경우 어떤 규칙을 우선으로 적용해야하는지 판단하기 어려움
+
+→ 사람의 손을 거치는 규칙은 정교하고 fomal하지 못하고 추상적이기 떄문에 불확실성이 크다.
+
+→ 최근 형태소 분석기를 포함한 대부분의 자연어처리 도구들은 사람의 힘이 아닌 많은 데이터의 힘을 빌려 숨은 패턴을 찾는 statistical-based방법론을 사용한다.
+
+→ 통계기반의 한국어 형태소 분석기는 대표적으로 MeCab-ko와 Khaii 가 있음, 이들은 모두 세종코퍼스와 같은 대용량 학습 데이터와 함께 기계학습 모델을 사용한다.
+
+→ Mecab은 CRF(conditional random field) 모델로 비지도(unsupervised) 학습을 하여 품사들의 연접(bigram) 과 단어 비용을 학습하여 이를 토크나이징하는 기준으로 활용한다
+
+→ Khaii 는 CNN(Convolutional Neural Network)모델을 통한 지도(supervised)학습으로 형태소의 경계를 구분하고 품사를 예측한다.
+
+[CNN, Convolutional Neural Network 요약](http://taewan.kim/post/cnn/)
+
+→ Khaii는 딥러닝 스럽게 원샷으로 분석할 수 있는 장점이 있지만 거대한 학습 모델이 매 음정마다 예측해야 하기에 상대적으로 MeCab보다는 분석 속도가 느린 단점이 있다. 또한 Mecan은 사전 중심의 형태소 분석기기 때문에 Khaii보다 오분석이나 특정케이스에 대해 빠른 대처가 가능하다.
+
+→ Mecab은 원래 일본어를 위한 엔진이고 코퍼스로부터 bigram 모델을 학습하기 때문에 특정 언어에 종속되지 않고 사용할 수 있다. 이 일본어 분석기를 재사용하고 한국어 코퍼스인 mecab-ko-dic을 적용시킨 것이 노리이다.
+
+1.3.1 MeCab
+
+MeCab원리를 간략히 설명하면 다음과 같다 먼저 아래의 그림과 같이 입력 문장을 사전에 있는 가능한 모든 단어의 조합으로 구성한다. 이 중에서 하나의 베스트 조합(빨간선)을 찾아야 한다. 좋다는 기준을 잡기 위해서 노드(단어)와 엣지(인접한 태그쌍)의 점수가 필요한데, 학습 데이터로부터 이들의 점수를 추출할 수 있다. 학습 데이터 내에서 빈도수가 높은 단어가 점수가 높고,빈번한 인접 태그쌍의 점수가 높다.
+
+점수를 측정하는 기준으로 단순히 Probability를 사용할수 있고, 기계학습 모델의 학습된 parameter를 사용할 수도 있다. MeCab은 CRF모델를 사용해서 점수를 측정한다. 이제 점수의 총합이 가장 큰 조합을 찾으면 되는데, 일일이 모든 경우의 수를 하나씩 계산하면서 베스트 조합을 찾는 일은 매우 비효율적이다. 마지막 단어가 다르다고 다시 처음부터 계산하기 보다 이전의 과정들을 모두 저장해 놓고 이를 재활용하는 계산 방법을 찾아야한다
+
+→ 이를 위해 MeCab에서는 Viterbi Algorithm을 사용한다.
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/35c22a20-504c-4f91-b4ce-b7bba30ad3b5/Untitled.png)
+
+ 문장과 같은 시퀀스 데이터를 정확히 모델링하는 일은 매우 어렵고, 제한적인 학습 데이터에서는 거의 불가능하다. 확률 관점으로 보면 모든 조합의 시퀀스가 학습데이터에 존재하지 않아 대부분을 smoothing 으로 해결해야하기에 'true' 확률 분포를 이해하는 것은 더더욱 어려울 것이다.
+
+이를 극복하기 위해서 Bayesian 특징,Markov 가정,Independence 가정 등 다양한 수학적 트릭을 사용하여 근사치를 만든다. 이러한 수학적 트릭들은 모두 MeCab에 다 녿아들어가 있다. 이들에 대한 설명은 HMM(hidden markov mode)을 이해하는것과 같다. 
+
+[Hidden Markov 모델 (feat. 품사태깅)](https://gritmind.blog/2020/07/14/hidden-markov-model-pos/)
+
+1. Nori 형태소 분석기
+
+→ 노리는 독립적인 프로젝트가 아닌 루씬에 있는 일본어 형태소 분석기 프로젝트은 Kyromoji를 재활용한 것임
+
+→ 형태소로 쪼개는 메카니즘은 언어에 크게 종속되지 않아 한국어에도 손쉽게 적용할 수 있다.
+
+→ 노리는 MeCab을 통해 생성된 MeCab-ko-dic 사전을 활용해서 형태소 단위로 나누고 품사를 태깅한다.
+
+2.1 Architecture
+
+→ 루씬 프로젝트 (lucene-solr)는 핵심 알고리즘이 있는 'core' 모듈과 'codecs','memory','queries' 등 다양한 모듈(패키지)로 구성된다.
+
+→ 노리는 하나의 독립적인 모듈로 자리잡고있다.
+
+→ nori 모듈은 core 모듈과 common과 의존 관계를 가진다. core 모듈로부터 analyzer,tokenizer 등과 같은 amalysis에 필요한 기본적인 뼈대를 가져오고 , common모듈로 부터 동의어 처리와 관련된 코드 등을 사용한다. 
+
+→ 루씬에서는 다양한 언어의 형태소 분석기를 제공하는데 언어에 상관없이 형태소 분석기가 가지는 기본적인 기능은 공통으로 사용한다.
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/14954254-b6e1-41c9-92e3-1806723adae3/Untitled.png)
+
+2.2 Setting
+
+→ 노리는 목적에 맞게 좀 더 효율적인 형태소 분석을 할 수 있도록 다양한 옵션을 제공한다.
+
+→ 루씬의 Analyzer는 Charater Filter 에서는 주로 특정 문자열,문자열 패턴을 치환,삭제 등을 하고 Token Filter에서는 대소문자화, 스테밍 들의 다양한 처리를 한다.
+
+→Nori는 루씬에서 제공하는 Token Filter 뿐만 아니라 한글로 표기된 숫자를 정수형으로 변환해주는 Korean Number Filter와 특정 POS태그에 해당되는 토큰을 삭제할 수 있는 Korean PartOfSpeech Stop Filter, 그리고 한자를 한글로 변환해주는 Korean ReadingForm Filter 를 제공한다.
+
+→ Nori는 Lucene에서 제공하는 Token Filter 중에서 동의어 단어를 추가할 수 있는 Synonym Graph Token Filter를 주로 사용한다
+
+→ Nori는 decompound mode 를 통해 복합명사를 어떻게 분석하는 지를 결정할 수 있다.
+
+- 복합명사의 원형만 살리고 싶으면 None모드
+- 서브 단어들만 살리고 싶으면 Discard모드
+- 모두 살리고 싶으면 Mixed 모드
+
+→ 검색 도메인에서 None 모드는 high precision에 유리하고 ,Discard 모드는 high recall에 유리하다.
+
+→ 하나의 형태소 분석기의 결과만 사용하기 보다는 여러개의 형태소 분석기의 결과를 사용하는 것이 좋을때도있다. 예를 들어 , 노리 형태소 분석기와 whitespace 형태소 분석기를 함께 사용할 수 있다.
+
+→ 공백단위로 분할된 토큰들은 검색 도메인에서 precision을 높여주는 역할을 한다. 간혹 특정 단어가 홀로 있을때와 문장 속에  있을때의 분석 결과가 다를 수 있는데 이를 보완해주기도 한다. 
+
+→ 그러나 정보의 질 측면에서는 덜 중료한 정보가 추가되었기에 텍스트를 분석할 때는 좋지 않을 수 있다.
+
+→ 엘라스틱 서치는 Query DSL을 제공하여 위와 같은 다양한 옵션들을 목적에 맞게 선택해서 노리에 쉽게 세팅할 수 있도록 해준다.
+
+[Query DSL | Elasticsearch Guide [7.14] | Elastic](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html)
+
+2.3 Resource
+
+2.3.1 Mecab-ko-dic
+
+노리는 Mecab의 후손으로서 토크나이징을 위한 재료로 Mecab-ko-dic 프로젝트를 활용한다
+
+크게 두가지 종류의 재료가 있다
+
+1. Mecab의 fork프로젝트인 Mecab-ko모델(한국어 특징 포함)으로 부터 생성된 결과물인 단어,연접 비용과 같은 '비용 정보'가 있다. matrix.def파일을 참고하면 모든 right-id와 left-id의 조합에 대한 연접 비용이 명시되어있다.
+2. 명사,형용사,조사,어미 등과 같은 품사와 관련된 단어와 인명,장소와 같은 고유 단어가 있는 '시스템 사전'이 존재한다. 사전에는 각 단어들에 대한 단어 비용이 명시되어 있다. 이러한 비용들은 Mecab에 있는 CRF 모델을 사용하여 한국어 코퍼스를 비지도 학습으로 학습한 결과물이다.
+
+<aside>
+✔️ 시스템 단어의 속성
+
+: 엔트리 / 좌문맥ID / 우문맥ID / 단어비용 / 품사태그 / 의미분류 / 종성유무 / 발음 / 타입 / 첫번째품사 / 마지막품사 / 분석결과
+
+예시)
+
+[ NNG.csv ]
+
+근접,1781,3535,2798,NNG,*,T,근접,*,*,*,*
+근접전,1781,3535,2835,NNG,*,T,근접전,Compound,*,*,근접/NNG/*+전/NNG/*
+...
+
+[ NNP.csv ]
+
+룩셈부르크어,1783,3538,3534,NNP,*,F,룩셈부르크어,Compound,*,*,룩셈부르크/NNP/지명+어/NNG/*
+병자호란창의록,1783,3539,3534,NNP,*,T,병자호란창의록,Compound,*,*,병자/NNG/*+호란/NNG/*+창의/NNG/*+록/NNG/*
+...
+
+[ Inflect.csv ]
+
+가까워,1801,5,2310,VA+EF,*,F,가까워,Inflect,VA,EF,가깝/VA/*+어/EF/*
+가까워도,1801,3,1664,VA+EC,*,F,가까워도,Inflect,VA,EC,가깝/VA/*+어도/EC/*
+가냘퍼진,1801,10,569,VA+EC+VX+ETM,*,T,가냘퍼진,Inflect,VA,ETM,가냘프/VA/*+어/EC/*+지/VX/*+ᆫ/ETM/*
+걸쳐져놓인,2417,10,0,VV+EC+VX+EC+VV+ETM,*,T,걸쳐져놓인,Inflect,VV,ETM,걸치/VV/*+어/EC/*+지/VX/*+어/EC/*+놓이/VV/*+ᆫ/ETM/*
+...
+
+[ MAG.csv ]
+
+가까스로,736,2650,3309,MAG,성분부사/양태부사,F,가까스로,*,*,*,*
+가까이,736,2650,1713,MAG,성분부사/양태부사,F,가까이,*,*,*,*
+...
+
+</aside>
+
+2.3.2 User Dictionary
+
+→ Nori의 특징으로 사용자 사전이라는 자원을 활용할 수 있다는 점이 있다.
+
+→ 말그대로 사용자가 정의하는 단어로 특정 도메인 사전을 만들 수 있음
+
+→ 노리 토크나이저는 내부 알고리즘 흐름 상 이들을 가장 중요하다고 판단하여 가장 먼저 처리함
+
+→ 노리 토크나이저를 사용자가 원하는 방향으로 세세한 케이스까지 쉽게 컨트롤 할 수 있는 장점이 있다. 또한 시스템 사전의 구성이 불완전할 경우 사용자 사전을 활용하여 보완할 수 있다.
+
+<aside>
+✔️ (예시)
+
+피땀
+
+바늘방석
+
+인공지능 인공 지능
+
+언어처리 언어 처리
+
+자연언어처리 자연 언어 처리
+
+</aside>
+
+→ 사용자 사전의 단어는 크게 단일어와 복합어로 구성된다.
+
+- 단어(word)는 형태소(morpheme)을 포함한다. 낱말은 형태소와 같은 의미이다. 여기서 언급하는 단일어는 자립 형태소(어근)를 뜻하고, 복합어이지만 융합 합성어를 포함한다. 복합어는 병렬 합성어와 같다. 단어(word)는 단일어와 복합어를 모두 포함한다. 어근은 자립 형태소로 구성한다.
+
+→ 예시완 같이 단일어는 홀로 명시하고 복합어는 원형어 다음에 형태소(낱말)들을 띄어쓰기와 함께 나열한다
+
+→ 단일어는 2개이상의 형태소가 결합된 융합 합성어,어근과 접사(접두사,접미사)가 결합한 파생어, 그리고 자립형태소 그 자체로 구성된다.(사용자 사전 어뷰징을 최대한 피하기 위해서 자립형태소의 등록은 지양하는것이 좋다)
+
+→ 복합어는 2개 이상의 형태소가 단순히 붙여진 형태
+
+→ 사용자 사전은 대부분 명사와 관련된 단일어와 복합어로 구성된다. 굴절어와 같이 동사와 관련된 엔트리(단어)는 특수하지 않으면 잘 사용되지 않는다. 
+
+→ 노리는 내부적으로 사용자사전의 단어들은 모두 일괄적으로 NNG(일반명사)품사 태그를 붙인다.
+
+→ 사용자 사전을 정의할 때 주의할 점
+
+- 단일어와 복합어의 구분을 명확히 하고, 동일한 복합어의 형태소 구성의 일관성을 유지해야한다.
+- 단어의 뜻에 따라 융합 합성어가 될 수 있고 병렬 합성어가 될 수 있다. 즉, 문맥에 따라 단일어가 될 수 있고 복합어가 될 수 있다. 이러한 중의성을 해결하기 위해서는 문맥을 먼저 보고 사전처리 작업을 해야한다.
+- 개념을 어떻게 바라보냐에 따라 단일어가 복합어가되고, 복합어가 단일어가 될수 있기에 일관된 기준이 중요하다
+    
+    <aside>
+    ✔️ (예시)
+    
+    - 바늘' 과 '방석'이 원형인 '바늘방석'의 의미를 보존하지 못하므로 단일어로 취급한다
+    - '인공' 과 '지능'은 원형인 '인공지능'의 의미를 보존하므로 복합어가 된다.
+    </aside>
+    
+
+→ 사용자 사전은 언어에 대한 깊은 이해를 바탕으로 작성되어야한다.
+
+2.3..3 Synonym Dictionary
+
+→ 언어는 하나의 의미가 다양한 형태로 표현된다. 문맥에 따라 다르게 표현되고, 동일한 개념이 다양한 이름으로 불리기도 한다. 
+
+→ 줄임말,외래어 등과 같이 다양한 표현 방식을 가진다. 
+
+→ 이러한 언어 특성을 다루기 위해 노리는 동의어 처리를 지원한다(넓게보면 오타도 동의어다) 
+
+→ 동의어 사전은 세미콜론(;)을 기준으로 단어를 나열하고 라인에 있는 모든 단어는 동일한 의미를 가진다.
+
+<aside>
+✔️ (예시)
+
+인공지능;에이아이
+
+자연언어처리;자연어처리
+
+</aside>
+
+→ 노리에서 동의어 처리는 Synonym Craph Filter에 의해 처리된다.
+
+→ Filter의 한 종류이므로 토크나이징 다음에 실시된다.
+
+→ 입력 질의어와 동의어 단어 모두 토크나이징을 실시한 경과를 대상으로 비교한다.
+
+<aside>
+✔️ (예시) '인공지능을 공부하자'
+
+→ 인공지능은 위에 설명하듯이 복합어로, '에이아이'는 사용자 사전에 등록되었다고 가정한다.
+
+| 인공 | 지능 | 을 | 공부 | 하 | 자 |
+
+|  에이아이   |
+
+</aside>
+
+→ '에이아이' 토큰이 추가되었다, 단순히 flat하게 추가된 것이 아니라 포지션을 기준으로 추가되었다. Bar( | )를 통해 각 토큰의 포지션을 확인할 수 있다.
+
+→ 동의어는 모두 동등한 포지션을 가지며 이러한 포지션 정보는 AND/OR 검색할때 활용된다.
+
+→ 주희할 점은 decompound mode와 filter의 순서에 따라 도으의어 처리 결과가 달라질 수 있다. POS FIlter가 먼제 실시하고 synonym filter가 실행된다고 하면
+
+<aside>
+✔️ 입력 쿼리가 '인공 ? 지능'일때 ,원형이 보존되는 none 과 mixed 모드에서는 동의어 처리가 원형을 기준으로 하기 때문에 동의어 처리가 되지않는다.
+
+반면, discard 모드에서는 동의어 처리가 가능하다. 물음표가 POS fiter에 의해 삭제되고 동의어 처리 기준이 원형이 아닌 연이은 서브단어들이 때문이다.
+
+</aside>
+
+→ 일반적으로 동의어 사전을 위와 같이 토큰 확장을 위해 사용하지만, 하나의 대표어를 선택하는 정규화를 목적으로 사용하기도 한다.
+
+2.4 Algorithms (for Tokenizing)
+
+→ 노리의 핵심적인 알고리즘으로 효율적인 계산으로 최적의 조합을 찾아주는 Viterbi
+
+→ 단어를 저장하는 FST알고리즘이 있다
+
+→ Two-memory tape 의 FST는 그 자체만으로 형태소 분석기를 만들 수 있지만 여기에서는 단어를 효과적으로 저장하는 자료구조로 활용된다
+
+2.4.1 Viterbi Algorithm(비터비 알고리즘)
+
+[Viterbi 알고리즘 (feat. 품사태깅)](https://gritmind.blog/2020/08/30/viterbi_algorithm_pos/)
+
+→ 어려운 문제를 여허개의 하위 문제로 쪼개고 하위 문제들을 먼저 해결하는 방법으로 동적 프로그래밍이 있다. 이의 패밀리 중에서 시퀀스 데이터를 처리하는 버전으로 Vitervi 알고리즘이 있다.
+
+→ 노리에서 토크나이징 문제는 가능한 모든 토큰 조합들 중에서 총 비용이 가장 적은 최적의 조합을 찾는 일과 같다.
+
+→ Viterbi 를 사용하면 최대 비용을 가지는 이전 노드만 저장하면서 토큰을 추가하므로 중복 연산없이 효율적으로 최적의 조합을 찾을 수 있다.
+
+→ Vitervci는 크게 viterbi path를 구성하는 일과 optimal path 를 찾는 일의 2단계로 구성되고 노리에선 각각 add 함수와 backtrace 함수를 통해 실행된다. ※ 이들은 모두 [KoreanTokenizer.java](http://koreantokenizer.java) 파일에 정의되어있다.
+
+<aside>
+✔️ add 함수
+
+```
+private void add(Dictionary dict, Position fromPosData, int wordPos, int endPos, int wordID, Type type) throws IOException {
+
+  final POS.Tag leftPOS = dict.getLeftPOS(wordID);
+  final int wordCost = dict.getWordCost(wordID);
+  final int leftID = dict.getLeftId(wordID);
+  int leastCost = Integer.MAX_VALUE;
+  int leastIDX = -1;
+  assert fromPosData.count > 0;
+
+  for(int idx=0; idx<fromPosData.count; idx++) {
+    // The number of spaces before the term
+	int numSpaces = wordPos - fromPosData.pos;
+
+	// Cost is path cost so far, plus word cost (added at
+	// end of loop), plus bigram cost and space penalty cost.
+	final int cost = fromPosData.cost[idx] + costs.get(fromPosData.lastRightID[idx], leftID) + computeSpacePenalty(leftPOS, numSpaces);
+
+	if (cost < leastCost) {
+	  leastCost = cost;
+	  leastIDX = idx;
+	}
+  }
+
+  leastCost += wordCost;
+  positions.get(endPos).add(leastCost, dict.getRightId(wordID), fromPosData.pos, wordPos, leastIDX, wordID, type);
+}
+```
+
+→ 노리는 왼쪽에서 오른쪽 방향으로 문자 하나씩 이동하면서 처리한다. 
+
+→ 현재 포지션의 문자로 시작하는 단어 중에서 사전과 일치하는 단어는 add함수의 인자로 들어온다.
+
+→ 압력 단어를 기준으로 이전 시간의 모든 단어들과의 비용을 계산하고 가장 비용이 적은 이전 시간의 idx와 함께 입력단어는 viterbi path에 추가된다.
+
+→ 즉, 입력 단어와 연결되는 과거의 path는 오로지 하나의 optimal path만 존재한다.
+
+</aside>
+
+<aside>
+✔️ backtrace 함수
+
+```
+private void backtrace(final Position endPosData, final int fromIDX) {
+
+  final int endPos = endPosData.pos;
+  final char[] fragment = buffer.get(lastBackTracePos, endPos-lastBackTracePos);
+  int pos = endPos;
+  int bestIDX = from IDX;
+
+  while (pos > lastBackTracePos) {
+
+    final Position posData = positions.get(pos);
+	  int backPos = posData.backPos[bestIDX];
+	  int backWordPos = posData.backWordPos[bestIDX];
+	  int length = pos - backWordPos;
+	  Type backType = posData.backType[bestIDX];
+	  int backID = posData.backID[bestIDX];
+	  int nextBestIDX = posData.backIndex[bestIDX];
+	  final int fragmentOffset = backWordPos - lastBackTracePos;
+	  final Dictionary dict = getDict(backType);
+	  ...
+
+	  else {
+	    final DictionaryToken token = new DictionaryToken(backType, dict, backID, fragment, fragmentOffset, length, backWordPos, backWordPos + length);
+
+	  }
+	  ...
+	  pending.add(token);
+	  ...
+  }
+}
+```
+
+→가장 늦게 viterbi path에 추가된 단어를 시작으로 backtrace 함수를 통해 이전 시간의 단어를 계속해서 추출해나간다.
+
+→ 비용이 가장 적은 이전 단어의 인덱스가 이미 add함수로부터 저장되어 있으므로 이는 매우 간단한 과정이다.
+
+→ 추출괸 단어리스트가 optimal path가 되고 토크나이징의 최종 결과물이 된다.
+
+</aside>
+
+2.4.2 FTS(Finite State Transducer)
+
+→ 복잡한 시/공간적 패턴을 가지는 프로세스를 FSM(Finite State Machine)로 표현하면 훨씬 더 압축된 모습으로 표현할 수 있다.
+
+→ 또한, union,intersection,concatenation,complement 등과 같은 대수적 성실(algebraic properties)을 이용할 수 있어 많은 문제를 쉽고 빠르게 해결할 수 있다.
+
+→ FSM은 구조적으로 한줄기의 심볼 시퀀스(a single memoty tape)밖에 표현하지 못하지만 FST는 두 줄기의 심볼 시퀀스(two memoty tapes)를 표현할 수 있다.
+
+→ FST는 입출력이 모두 있지만 FSM은 출력만 있다.
+
+→ FST는 서로 다른 두 심볼 시퀀스를 매핑하는 능력이 있기 때문에 translator라고도 불리고 자연어 처리에서 형태소 분석기, 파싱 등에 사용된다.
+
+→ 보통 FST를 알고리즘으로 사용하지만 , 자료구조로도 활용될 수 있다. 노리에서는 FST를 자료구조로 사용하여 압축된 형태로 단어를 효율적으로 저장하고 선형시간(linear time) 으로 검색을 가능케 해준다.
+
+- 선형시간(linear time) : 기술적으로 충분히 큰 n에 대하여, 알고리즘의 실행시간이 *a***n**에서 *b***n**의 범위 안에 들 경우 a와b는 양의 정수), 이를 '선형 시간'이라고 부를 수 있다.
+
+→ 즉, FST를 사용하여 단어를 저장하면 메모리 효율적으로 저장할 수 있고 디스크로부터 빠른 로딩을 할 수 있다. FST는 prefix와 suffix를 모두 공유하기 떄문에 압축률을 최대한 높일 수 있다.  ※이와 비슷한 Trie 자료구조는 오직 prefix만 공유한다
+
+→ FST는 Lucene project에 포함되어 범용적으로 사용되고 있다.
+
+Nori의 제한점 
+
+**전처리 모듈**
+
+노리 앞단에 오류를 보정하기 위한 전처리 모듈**[16](https://gritmind.blog/2020/07/22/nori_deep_dive/amp/#%EA%B0%81%EC%A3%BC)**이 필요합니다. 대표적으로 오타 교정, 띄어쓰기 교정, 신조어 추가가 있다. 공통으로 세 가지 모두 사전 기반인 노리의 토크나이징 품질에 큰 영향을 준다. 오타 교정은 다양한 표현 방식을 하나로 통일하는 정규화와 비슷한 성격을 가지고 신조어 추가는 미등록어 처리에 도움을 준다.
+
+노리는 띄어쓰기 비교적 정확한 코퍼스로부터 학습된 리소스를 사용하므로 띄어쓰기 오류가 있는 경우 잘못된 형태소 조합을 출력할 확률이 높다**[17](https://gritmind.blog/2020/07/22/nori_deep_dive/amp/#%EA%B0%81%EC%A3%BC)**. 예를 들어, “업무용 무전기”는 [‘업무’, ‘용’, ‘무전’, ‘기’]로 알맞게 토크나이징이 되지만 띄어쓰기가 없는 “업무용무전기”는 [‘업무’, ‘용무’, ‘전기’]로 잘못된 분석 결과를 도출한다. 또한, 노리 내부 알고리즘 특성상 띄어쓰기가 없고 첫 단어가 미등록 음절일 경우 unknown 길이가 길어져 토크나이징이 아예 안될 수 있다. 예를 들어, “퀸이불베개세트” 쿼리를 기준으로 ‘퀸’으로 시작하는 부분 단어가 사전에 아예 없는 경우 ‘퀸-트’까지 모두 unknown 토큰으로 간주하여 [‘퀸이불베개세트’]라는 분석 결과를 가진다. 이상적인 결과는 [‘퀸’, ‘이불’, ‘베개’, ‘세트’]가 되어야 한다.
+
+**우선순위 처리 ABUSE**
+
+노리는 토크나이징할 때 우선순위가 있는 세 개의 사전(1.USER, 2.KNOWN, 3.UNKOWN)을 사용한다. 이러한 구조는 사전 자원을 효율적으로 운용할 수 있게 하고 사용자에게 토크나이징을 직접적으로 컨트롤할 수 있는 권한을 부여할 수 있는 장점이 있지만, 이 때문에 발생하는 문제도 있다.
+
+미등록 단어의 경우는 토크나이징을 원치 않을 수도 있다**[18](https://gritmind.blog/2020/07/22/nori_deep_dive/amp/#%EA%B0%81%EC%A3%BC)**. 미등록 단어는 우선순위가 가장 낮은 UNKNOWN 사전에서 처리해야 하지만 이보다 우선순위가 높은 KNOWN 또는 USER 사전에서 먼저 처리한다. 이에 입력 문자열의 부분 단어를 기준으로 토크나이징이 되는 현상이 빈번하다**[19](https://gritmind.blog/2020/07/22/nori_deep_dive/amp/#%EA%B0%81%EC%A3%BC)**. 예를 들어, “카페트”라는 미등록어가 텍스트를 분석하면 [‘카페’, ‘트’]라는 결과를 가지게 되어 ‘카페’라는 잘못된 의미 분석을 하게 된다. 만약, 사용자 사전에 1음절이 많이 등록되어 있다면 미등록어(신조어)가 해당 1음절을 기준으로 쪼개지는 현상이 빈번할 것이다.
+
+한글로 연이어진 문자열을 토크나이징할 때 구문적인 단어를 포함시키는 것보다 가능한 의미적인 단어들의 조합을 구성하는 편이 좋다. KNOWN 단어들로 의미적인 단어 조합으로 구성할 수 있고, USER 단어들로 의미적 단어와 구문적 단어로 구성할 수 있다면, 전자를 선택하는 것이 좋다. 현재는 USER 사전의 우선순위가 있으므로 항상 후자의 경우를 선택할 수 밖에 없다. 예를 들어, ‘삼성대’라는 단어가 사용자 사전에 들어있는 상태에서 “삼성대리점”을 분석하면 [‘삼성대’, ‘리’, ‘점’]으로 오분석된다. 이 경우는 [‘삼성’, ‘대리점’]이 더 적합한 결과이다.
+
+우선순위 처리 ABUSE 문제는 크리티컬한 문제가 아니므로 전체 성능에 큰 영향을 끼치지는 않는다. 그리고 우선순위 매커니즘 자체가 노리의 기본 전략이므로 근본을 고치기 보다는 위의 문제들을 고려해서 사전을 적절히 잘 운용하는 등과 같이 알고리즘을 보완할 수 있는 방향을 가지는 것이 좋다.
+
