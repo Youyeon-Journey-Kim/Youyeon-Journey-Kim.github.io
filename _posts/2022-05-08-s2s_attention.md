@@ -1,13 +1,13 @@
 ---
 layout: post
-title: 데이터 사이언티스트가 알아야하는 NLP(1)- Seq2Seq, Attention
+title: 데이터 사이언티스트가 알아야하는 NLP(1)- Seq2Seq with Attention
 tags: [ML, Seq2Seq, Attention]
 math: true
 date: 2022-05-08 00:46 +0800
 ---
 
 
-#### 데이터 사이언티스트가 알아야하는 NLP(1)- Seq2Seq, Attention
+#### 데이터 사이언티스트가 알아야하는 NLP(1)- Seq2Seq with Attention
 
 **딥러닝 기반 기계번역 발전 과정**
 #### RNN → LSTM → Seq2Seq (_고정된 크기의 context vector 사용_) → Attention → Transformer → GPT,BERT(_입력 시퀀스 전체에서 정보를 추출하는 방향으로 발전_)
