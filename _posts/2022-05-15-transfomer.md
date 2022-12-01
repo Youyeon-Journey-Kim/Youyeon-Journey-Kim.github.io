@@ -37,7 +37,7 @@ date: 2022-05-15 22:18 +0800
 
 - ##### **Encoder의 아웃풋은 은닉층(Hidden state)**
 
-![https://miro.medium.com/max/956/1*pQwlJ5c2XOLGg0_-KUJ3MQ.jpeg](https://miro.medium.com/max/720/1*pQwlJ5c2XOLGg0_-KUJ3MQ.webp)
+![encoder](https://miro.medium.com/max/720/1*pQwlJ5c2XOLGg0_-KUJ3MQ.webp)
 
 ***
 
@@ -52,7 +52,7 @@ date: 2022-05-15 22:18 +0800
 
 ***
 
-**What is a decoder?
+**What is a decoder?**
 
 > ##### To decode means to converts a coded message into intelligible language. The second person in the team playing Pictionary will convert the drawing into a word. In the machine learning model, the role of the decoder will be to convert the two-dimensional vector into the output sequence, the English sentence. It is also built with RNN layers and a dense layer to predict the English word.
 
@@ -64,6 +64,6 @@ date: 2022-05-15 22:18 +0800
 
 ***
 
-** 트랜스포머 모델이란?**
+**Transfomer Model 이란?**
 
 > ##### 트랜스포머 모델은 문장 속 단어와 같은 순차 데이터 내의 관계를 추적해 맥락과 의미를 학습하는 신경망이다.
