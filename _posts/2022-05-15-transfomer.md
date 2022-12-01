@@ -7,3 +7,63 @@ date: 2022-05-15 22:18 +0800
 ---
 
 #### 데이터 사이언티스트가 알아야하는 Transfomer
+
+##### _회사에서 텍스트 분류 POC를 맡게 되면서 Transfomer에 대한 보다 더 깊은 이해가 필요했다. 그래서 이에 대해 정리해보고자 한다.
+
+***
+##### **트랜스포머 모델에 대해 정리하기 전 Encoder와 Decoder를 짚고 넘어가자**
+
+**[What is an encoder decoder model?](https://towardsdatascience.com/what-is-an-encoder-decoder-model-86b3d57c5e1a)**
+
+#### encoder-decoder model이란 무엇일까?
+
+- ##### 인코더-디코더 모델의 개념을 이해하는 가장 졸은 방법은 Pictionary 게임을 하는 것이다.(대충 다른사람이 그린 그림 맞추는 게임인듯...?) 게임의 규칙은 간단하다. 플레이어 1은 목록에서 무작위로 단어를 선택하고 그 단어에 대해 스케치해야한다. 팀에서 두번째 선수의 역할은 그림을 분석하고 설명하는 단어를 식별하는 것이다.  
+![img1](https://miro.medium.com/max/1100/1*tdM9YctiX43_9CluSK_aJw.webp)
+
+- ##### 이 예시에서는 Playeer 1(단어를 그림으로 변환하는 사람)(**Encoder**), 그림(토끼)(**Hidden State**) 및 그림이 나타내는 단어를 추측하는 Player2(**Decoder**), 이 세 가지가 중요한 요소이다.
+
+
+![img2](https://miro.medium.com/max/1100/1*bjSD5iFeP5vbSzQ0MuAf5w.webp)
+
+- ##### 위의 게임을 ML 개념으로 바꿔 생각하면 위의 그림처럼 볼 수 있다. 
+
+
+#### What is an encoder?
+
+> ##### Encoding means to convert data into a required format. In the Pictionary example we convert a word (text) into a drawing (image). In the machine learning context, we convert a sequence of words in Spanish into a two-dimensional vector, this two-dimensional vector is also known as hidden state. The encoder is built by stacking [recurrent neural network (RNN)](https://medium.com/swlh/introduction-to-recurrent-neural-networks-rnn-c2374305a630). We use this type of layer because its structure allows the model to understand context and temporal dependencies of the sequences. The output of the encoder, the hidden state, is the state of the last RNN timestep.
+
+
+- ##### 인코딩이란 데이터를 필요한 형식으로 변환하는 것을 의미한다. 위 그림처럼 스페인어로 된 일련의 단어를 **2차원 벡터로 변환**한다. **이 two-dimentional vector를 _Hidden state_ 라고 한다**.  인코더는 **Recurrent neural network(RNN)- 순환신경망**을 쌓아서(stacking) 구축된다. 
+
+- ##### **Encoder의 아웃풋은 은닉층(Hidden state)**
+
+![https://miro.medium.com/max/956/1*pQwlJ5c2XOLGg0_-KUJ3MQ.jpeg](https://miro.medium.com/max/720/1*pQwlJ5c2XOLGg0_-KUJ3MQ.webp)
+
+***
+
+**What is a hidden state?**
+
+> ##### The out put of the encoder, a two-dimensional vector that encapsulates the whole meaning of their input sequence. The length of the vector depends on the number od cells in the RNN.
+
+- ##### 인코더의 출력은 input sequence의 전체 의미를 캡슐화하는 2차원 벡터이다. 벡터의 길이는 RNN의 cell 수에 따라 다르다.
+
+
+![hidden state](https://miro.medium.com/max/1128/1*0gZrsfivjJJKyg8EQWBEHA.jpeg)
+
+***
+
+**What is a decoder?
+
+> ##### To decode means to converts a coded message into intelligible language. The second person in the team playing Pictionary will convert the drawing into a word. In the machine learning model, the role of the decoder will be to convert the two-dimensional vector into the output sequence, the English sentence. It is also built with RNN layers and a dense layer to predict the English word.
+
+- ##### 디코딩이란 암호화된 메세지를 이해할 수 있는 언어로 변환하는 것을 의미한다. 위 Pictionary게임에서 player2가 그림을 단어로 변환하는 것과 같다. 기계 학습 모델에서 디코더의 역할은 2차원 벡터를 출력 시퀀스인 영어문장으로 변환 하는 것이다. 또한 영어단어를 예측하기 위해 RNN layer와 dense layer로 구축되어있다.
+
+![decoder](https://miro.medium.com/max/1400/1*rkgcxYFzLZjz7o6hz3FsQw.jpeg)
+
+
+
+***
+
+** 트랜스포머 모델이란?**
+
+> ##### 트랜스포머 모델은 문장 속 단어와 같은 순차 데이터 내의 관계를 추적해 맥락과 의미를 학습하는 신경망이다.

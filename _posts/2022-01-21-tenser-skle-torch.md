@@ -19,8 +19,7 @@ date: 2022-01-21 22:18 +0800
 
 >##### The framework is built on top of several Python packages, Namely Numpy, SciPy, and matplotlib.
 
->##### A major benefit of this library is the **BDS license** it's distributed under.
-    > ##### This license allows you to decide whether to upstream your changes without any restriction on commercial use.
+>##### A major benefit of this library is the **BDS license** it's distributed under. This license allows you to decide whether to upstream your changes without any restriction on commercial use.
 
 >##### The main advantage of this solution is its accessibility and simplicity -it's easy to use even for beginners and a great choice for simpler data anaysis tasks. On the other hand, scikit-learn is not the best for deep learning.   
 
