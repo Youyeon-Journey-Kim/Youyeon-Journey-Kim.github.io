@@ -85,6 +85,7 @@ date: 2022-05-08 00:46 +0800
 
 
 
-##### _참고글_
+##### _참고글_   
 [1](https://ebbnflow.tistory.com/316)
 [2](https://wikidocs.net/24996)
+[3](https://velog.io/@seojeongbin/Seq2Seq-%EA%B7%B8%EB%A6%AC%EA%B3%A0-Attention)
