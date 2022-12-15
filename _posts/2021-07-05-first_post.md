@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 데이터엔지니어 김유연의 기술블로그입니다.
+title: Data Engineer 김유연의 기술블로그입니다.
 tags: [기술블로그]
 math: true
 date: 2021-07-05 15:32 +0800

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 데이터 사이언티스트가 알아야하는 NLP(2)- Transformer,BERT
+title: NLP(2)- Transformer,BERT
 tags: [ML, Transfomer, BERT]
 math: true
 date: 2022-07-21 18:46 +0800

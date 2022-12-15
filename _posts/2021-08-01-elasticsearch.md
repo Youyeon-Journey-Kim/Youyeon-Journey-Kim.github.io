@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 데이터 엔지니어가 알아야하는 Elasticsearch
+title: Elasticsearch
 tags: [엘라스틱서치, Elasticsearch]
 math: true
 date: 2021-08-01 22:13 +0800

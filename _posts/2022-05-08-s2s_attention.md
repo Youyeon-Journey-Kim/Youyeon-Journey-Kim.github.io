@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 데이터 사이언티스트가 알아야하는 NLP(1)- Seq2Seq with Attention
+title: NLP(1)- Seq2Seq with Attention
 tags: [ML, Seq2Seq, Attention]
 math: true
 date: 2022-05-08 00:46 +0800

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 빅데이터란?
+title: 빅데이터란
 tags: [빅데이터]
 math: true
 date: 2022-11-01 18:46 +0800
