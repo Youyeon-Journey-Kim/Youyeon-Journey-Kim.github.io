@@ -70,8 +70,105 @@ date: 2022-07-21 18:46 +0800
 
 ###### 출처: https://wikidocs.net/115055
 
-- ##### BERT의 기본 구조는 위와 같이 transformer의 encoder를 쌓아올린 구조.
+→ BERT의 기본 구조는 위와 같이 Transfomer의 encoder를 쌓아올린 구조.
 
+- Base 버전에서는 총 12개를 쌓았으며, Large버전에서는 총 24개를 쌓았다. 그 외에도 Large버전은 Base버전보다 d_model의 크기나 Self Attention Heads의 수가 더 크다.
+    
+    (트랜스포머 인코더 층의 수 L, d_model의 크기 D, Self Attention Heads의 수를 A라고 하였을때)
+    
+    - BERT-Base : L=12, D=768, A=12 : 110M개의 파라미터
+    - BERT-Large : L=24, D=1024, A=16 : 340M개의 파라미터
+    
+    ⇒ 초기 트랜스포머 모델이 L =6, D=512, A= 8이었다는 것과 비교하면 Base또한 초기 트랜스포머 모델보다는 큰 네트워크임을 알 수 있다. 
+    
+    ---
+    
+
+### BERT의 Contextual Embedding(문맥을 반영한 임베딩)
+
+BERT는 ELMo 나 GPT-1과 마찬가지로 문맥을 반영한 임베딩을 사용함.
+
+![https://wikidocs.net/images/page/115055/bert0.PNG](https://wikidocs.net/images/page/115055/bert0.PNG)
+
+- BERT의 입력은 Embedding layer을 지난 임베딩 벡터들이다.
+- d_model을 768차원으로 정의 하였으므로, 모든 단어들은 768차원의 임베딩 벡터가 되어 BERT의 입력으로 사용됨.
+    - 내부적인 연산을 거친 후, 동일하게 각 단어에 대해서 768차원의 벡터를 출력.
+    - 위 그림은 BERT가 각 768차원의 [CLS], I, love, you 라는 4개의 벡터를 입력 받아서(입력 임베딩) 동일하게 768차원의 4개의 벡터를 출력하는 모습(출력 임베딩)을 보여준다.
+
+![https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC2.PNG](https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC2.PNG)
+
+- BERT의 연산을 거친 후의 출력 임베딩은 문장의 문맥을 모두 참고한 문맥을 반영한 임베딩이 된다.
+
+![https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC3.PNG](https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC3.PNG)
+
+- 하나의 단어가 모든 단어를 참고하는 연산은 사실 BERT의 12개의 층에서 전부 이루어지는 연산이다. → 이를 12개의 층을 지난 후에 최종적으로 출력 임베딩을 언게 되는것
+- 위의 그림은 BERT의 첫번째 층에 입력된 각 단어가 모든 단어를 참고한 후에 출력되는 과정을 화살표로 표현한 것인데 BERT의 첫번째 층의 출력 임베딩은 BERT의 두번째 층에서는 입력 임베딩이 된다.
+
+![https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC4.PNG](https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC4.PNG)
+
+- 셀프 어텐션, **BERT는 기본적으로 트랜스포머 인코더를 12번 쌓은 것**으로 내부적으로 각 층마다 멀티 헤드 셀프 어텐션과 포지션 와이드 피드 포워드 신경망을 수행하고 있다.
+
+---
+
+### Position Embedding
+
+- 트랜스포머에서는 Positional Encoding 이라는 방법을 통해서 단어의 위치 정보를 표현했다. **포지셔널 인코딩**은 **사인함수와 코사인 함수를 사용하여 위치에 따라 다른 값을 가지는 행렬을 만들어 이를 단어 벡터들과 더하는 방법**이다.
+- BERT에서는 이와 유사하지만, **위치 정보를 사인,코사인 함수로 만드는 것이 아닌 학습을 통해서 Position Embedding**이라는 방법을 사용
+
+![https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC5.PNG](https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC5.PNG)
+
+- 위의 그림은 포지션 임베딩을 사용하는 방법을 보여준다.
+- 위의 그림에서 WordPiece Embedding은 이미 알고있는 단어 임베딩으로 실질적인 입력으로 이 입력에 포지션 임베딩을 통해서 위치정보를 더해 주어야 한다.
+- 포지션 임베딩은 위치 정보를 위한 임베딩 층(Embedding layer)을 하나 더 사용한다.
+- 문장의 길이가 4 ⇒ 4개의 포지션 임베딩 벡터를 학습 ⇒ BERT의 입력마다 아래와 같이 포지션 임베딩 벡터를 더해준다.
+    - *첫번째 단어의 임베딩 벡터 + 0번 포지션 임베딩 벡터*
+    - *두번째 단어의 임베딩 벡터 + 1번 포지션 임베딩 벡터*
+    - *세번째 단어의 임베딩 벡터 + 2번 포지션 임베딩 벡터*
+    - *네번째 단어의 임베딩 벡터 + 3번 포지션 임베딩 벡터*
+- 실제 BERT에서는 문장의 최대길이를 512로 하고 있어, 총 512개의 포지션 임베딩 벡터가 학습된다. → BERT에서는 총 두개의 임베딩 층이 사용된다. + *BERT는 Segment Embedding이라는 1개의 임베딩 층을 더 사용*한다.
+
+---
+
+### BERT의 Pre-training
+
+![https://wikidocs.net/images/page/35594/bert-openai-gpt-elmo-%EC%B6%9C%EC%B2%98-bert%EB%85%BC%EB%AC%B8.png](https://wikidocs.net/images/page/35594/bert-openai-gpt-elmo-%EC%B6%9C%EC%B2%98-bert%EB%85%BC%EB%AC%B8.png)
+
+- ELMo는 정방향 LSTM과 역방향 LSTM을 각각 훈련시키는 방식의 양방향 언어 모델을
+- GPT-1은 트랜스포머의 디코더를 이전 단어들로부터 다음 단어를 예측하는 방식의 단방향 언어 모델
+- GPT와는 달리 BERT는 화살표가 양방향으로 뻗어 나가는 모습을 보여준다. 이는 마스크드 언어 모델(MLM)을 동해 양방향성을 얻었기 때문.
+    - BERT의 사전 훈련방법은 크게 두가지로 나뉨
+        - 첫번째는 마스크드 언어모델
+        - 두번째는 다음 문장 예측(NSP)
+    
+
+---
+
+### Segment Embedding
+
+![https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC7.PNG](https://wikidocs.net/images/page/115055/%EA%B7%B8%EB%A6%BC7.PNG)
+
+- BERT는 세그먼트 임베딩이라는 또 다른 임베딩 층을 사용한다.
+    - 첫번째 문장에는 Sentence 0 임베딩, 두번째 문장에는 Sentence1임베딩을 더해주는 방식이며 임베딩 벡터는 두개만 사용.
+    - 두 개의 문장을 구분하기 위한 임베딩. 임베딩 벡터의 종류는 문장의 최대 개수인 2개.
+    
+
+### BERT 파인튜닝
+
+1. Single Text Classification
+    
+    ![https://wikidocs.net/images/page/115055/apply1.PNG](https://wikidocs.net/images/page/115055/apply1.PNG)
+    
+2. Tagging
+    
+    ![https://wikidocs.net/images/page/115055/apply2.PNG](https://wikidocs.net/images/page/115055/apply2.PNG)
+    
+3. 텍스트의 쌍에 대한 분류 또는 회귀문제
+    
+    ![https://wikidocs.net/images/page/115055/apply3.PNG](https://wikidocs.net/images/page/115055/apply3.PNG)
+    
+4. 질의 응답
+    
+    ![https://wikidocs.net/images/page/115055/apply4.PNG](https://wikidocs.net/images/page/115055/apply4.PNG)
 
 
 ***
