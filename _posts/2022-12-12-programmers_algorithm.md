@@ -25,7 +25,7 @@ date: 2022-12-23 12:49 +0800
 |"-1 -2 -3 -4"|"-4 -1"|
 |"-1 -1"|"-1 -1"|
 
-#### 답안
+#### 내 답안
 
 ```python
 def solution(s):
@@ -56,7 +56,7 @@ def solution(s):
 |"for the last week"|"For The Last Week"|
 
 
-#### 답안
+#### 내 답안
 
 ```python
 def solution(s):
@@ -94,7 +94,7 @@ def solution(s):
 ##### 길이가 같은 배열 A, B 두개가 있습니다. 각 배열은 자연수로 이루어져 있습니다.   배열 A, B에서 각각 한 개의 숫자를 뽑아 두 수를 곱합니다. 이러한 과정을 배열의 길이만큼 반복하며, 두 수를 곱한 값을 누적하여 더합니다. 이때 최종적으로 누적된 값이 최소가 되도록 만드는 것이 목표입니다. (단, 각 배열에서 k번째 숫자를 뽑았다면 다음에 k번째 숫자는 다시 뽑을 수 없습니다.)
 
 
-### 답안
+### 내 답안
 
 ```python
 def solution(A,B):
@@ -135,4 +135,36 @@ def solution(A,B):
 
 - 가장 먼저 입력된 데이터가 가장 먼저 출력되는 구조 : FIFO(First in, First out)
 - Python에서는 queue라는 내장 모듈을 제공한다.
-    - queue에 데이터를 넣을때(Enqueue)
+    - queue에 데이터를 넣을때(Enqueue) : put()
+    - queue에서 데이터를 꺼낼때(Dequeue) : get()
+
+
+2. Stack
+
+- 나중에 입력 된 데이터가 먼저 출력되는 구조 : LIFO(Last In, First Out)
+    - push : 데이터 입력
+    - pop : 데이터 꺼내기
+- Python에서는 append를 통해 데이터를 넣고 꺼낼때는 pop()함수를 사용
+
+
+
+### 내 답안
+```python
+def solution(s):
+    stl = list(s)
+    if stl[0] == ')' or stl[-1] == '()':
+        return False
+    q_stack = list()
+    for c in stl:
+        if c == '(':
+            q_stack.append(c)
+        else:
+            if len(q_stack):
+                q_stack.pop()
+            else:
+                return False
+    if len(q_stack) == 0:
+        return True
+    else:
+        return False
+```
