@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Tensorflow, Sklearn, Pytorch, Keras
-tags: [Tensorflow, Sklearn, Pytorch]
+tags: [DS]
 math: true
 date: 2022-01-21 22:18 +0800
 ---

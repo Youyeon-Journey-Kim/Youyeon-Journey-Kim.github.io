@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Elasticsearch
-tags: [엘라스틱서치, Elasticsearch]
+tags: [DE]
 math: true
 date: 2021-08-01 22:13 +0800
 ---

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: DistilBERT
-tags: [ML, DistilBERT]
+tags: [DS]
 math: true
 date: 2022-05-27 21:32 +0800
 ---

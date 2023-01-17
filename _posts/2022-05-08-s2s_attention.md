@@ -1,7 +1,7 @@
 ---
 layout: post
 title: NLP(1)- Seq2Seq with Attention
-tags: [ML, Seq2Seq, Attention]
+tags: [DS]
 math: true
 date: 2022-05-08 00:46 +0800
 ---

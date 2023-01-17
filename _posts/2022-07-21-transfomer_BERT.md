@@ -1,7 +1,7 @@
 ---
 layout: post
 title: NLP(2)- Transformer,BERT
-tags: [ML, Transfomer, BERT]
+tags: [DS]
 math: true
 date: 2022-07-21 18:46 +0800
 ---

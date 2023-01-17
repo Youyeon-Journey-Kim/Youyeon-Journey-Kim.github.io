@@ -1,7 +1,7 @@
 ---
 layout: post
 title: XLM-RoBERTa
-tags: [XLM-RoBERTa,데이터 사이언티스트]
+tags: [DS]
 math: true
 date: 2022-04-21 20:53 +0800
 ---
