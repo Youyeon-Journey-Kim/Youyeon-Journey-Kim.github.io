@@ -27,14 +27,14 @@ date: 2022-12-23 12:49 +0800
 
 #### 답안
 
-``python
+```python
 
 def solution(s):
     l = list(map(int,s.split(sep=' ')))
     answer = str(min(l)) + ' ' + str(max(l))
 
     return answer
-``
+```
 
 ***
 
@@ -59,7 +59,7 @@ def solution(s):
 
 #### 답안
 
-``python
+```python
 def solution(s):
     n_list = list(map(str,(range(10))))
     s = s.lower()
@@ -86,7 +86,7 @@ def solution(s):
             answer += c
 
     return answer
-``
+```
 
 ### 최솟값 만들기
 
@@ -97,8 +97,8 @@ def solution(s):
 
 ### 답안
 
-``python
+```python
 def solution(A,B):
     answer = sum(a*b for a,b in zip(sorted(A),sorted(B,reverse=True)))
     return answer
-``
+```
