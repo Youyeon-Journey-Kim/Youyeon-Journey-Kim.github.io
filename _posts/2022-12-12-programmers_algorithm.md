@@ -3,7 +3,7 @@ layout: post
 title: 프로그래머스 문제풀이(최댓값과 최솟값, JadenCase 문자열 만들기, 최솟값 만들기, 올바른 괄호) with Python
 tags: [코테]
 math: true
-date: 2022-12-23 12:49 +0800
+date: 2022-12-12 12:12 +0800
 ---
 ### 1. 최댓값과 최솟값
 #### 문제 설명
@@ -149,6 +149,7 @@ def solution(A,B):
 
 
 ### 내 답안
+
 ```python
 def solution(s):
     stl = list(s)
