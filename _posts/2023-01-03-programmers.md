@@ -92,7 +92,7 @@ def solution(n):
 ##### 예를 들어, 문자열 S = baabaa 라면
 
 
-##### b aa baa → bb aa → aa →
+##### b aa baa → bb aa → aa → 
 
 ##### 의 순서로 문자열을 모두 제거할 수 있으므로 1을 반환합니다.
 
